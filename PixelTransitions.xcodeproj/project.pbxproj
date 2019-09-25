@@ -46,7 +46,7 @@
 		74D646E1233BC7400031C43F = {
 			isa = PBXGroup;
 			children = (
-				74D646ED233BC7400031C43F /* PixelTransitions */,
+				74D646ED233BC7400031C43F /* Source */,
 				74D646EC233BC7400031C43F /* Products */,
 				5B4FEAEE28B2F426B2651885 /* Pods */,
 				8AF4631B2700370DB3F30267 /* Frameworks */,
@@ -61,14 +61,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		74D646ED233BC7400031C43F /* PixelTransitions */ = {
+		74D646ED233BC7400031C43F /* Source */ = {
 			isa = PBXGroup;
 			children = (
 				74D646EE233BC7400031C43F /* PixelTransitions.h */,
 				74D646EF233BC7400031C43F /* Info.plist */,
 				74D646F6233BC9190031C43F /* PixelTransition.swift */,
 			);
-			path = PixelTransitions;
+			path = Source;
 			sourceTree = "<group>";
 		};
 		8AF4631B2700370DB3F30267 /* Frameworks */ = {
@@ -323,7 +323,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = PixelTransitions/Info.plist;
+				INFOPLIST_FILE = Source/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -350,7 +350,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = PixelTransitions/Info.plist;
+				INFOPLIST_FILE = Source/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
