@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import PixelKit
 
 @_functionBuilder
 public struct PixelTransitionViewBuilder<Content: View> {
@@ -16,17 +15,65 @@ public struct PixelTransitionViewBuilder<Content: View> {
     }
 }
 
-class Transitions {
+class PixelTransitionAnimations {
     
-    static let shared = Transitions()
+    static let shared = PixelTransitionAnimations()
     
-    var transitionList: [String: Transition] = [:]
+    var displayLink: CADisplayLink!
     
-    func transition(for id: String, index: Binding<Int>, seconds: Double) -> Transition {
+    var frameCallbacks: [(id: UUID, callback: () -> ())] = []
+    
+    init() {
+        displayLink = CADisplayLink(target: self, selector: #selector(frameLoop))
+        displayLink!.add(to: RunLoop.main, forMode: .common)
+    }
+    
+    // MARK: - Frame Loop
+    
+    @objc func frameLoop() {
+        for frameCallback in self.frameCallbacks {
+            frameCallback.callback()
+        }
+    }
+    
+    public enum ListenState {
+        case `continue`
+        case done
+    }
+    
+    public func listenToFramesUntil(callback: @escaping () -> (ListenState)) {
+        let id = UUID()
+        frameCallbacks.append((id: id, callback: {
+            if callback() == .done {
+                self.unlistenToFrames(for: id)
+            }
+        }))
+    }
+    
+    public func listenToFrames(callback: @escaping () -> ()) {
+        frameCallbacks.append((id: UUID(), callback: {
+            callback()
+        }))
+    }
+    
+    public func unlistenToFrames(for id: UUID) {
+        for (i, frameCallback) in self.frameCallbacks.enumerated() {
+            if frameCallback.id == id {
+                frameCallbacks.remove(at: i)
+                break
+            }
+        }
+    }
+    
+    // MARK: - Transitions
+    
+    var transitionList: [String: PixelTransitionAnimation] = [:]
+    
+    func transition(for id: String, index: Binding<Int>, seconds: Double) -> PixelTransitionAnimation {
         if let transition = transitionList[id] {
             return transition
         } else {
-            let transition = Transition(index: index, seconds: seconds)
+            let transition = PixelTransitionAnimation(index: index, seconds: seconds)
             transitionList[id] = transition
             return transition
         }
@@ -34,7 +81,7 @@ class Transitions {
     
 }
 
-class Transition: ObservableObject {
+class PixelTransitionAnimation: ObservableObject {
     
     let index: Binding<Int>
     var currentIndex: Int
@@ -52,7 +99,7 @@ class Transition: ObservableObject {
         prevIndex = currentIndex
         nextIndex = currentIndex
         self.seconds = seconds
-        PixelKit.main.listenToFrames {
+        PixelTransitionAnimations.shared.listenToFrames {
             let index = self.index.wrappedValue
             if index != self.currentIndex {
                 self.currentIndex = index
@@ -68,7 +115,7 @@ class Transition: ObservableObject {
         acitve = true
         nextIndex = currentIndex
         let startDate = Date()
-        PixelKit.main.listenToFramesUntil {
+        PixelTransitionAnimations.shared.listenToFramesUntil {
             self.fraction = CGFloat(min(-startDate.timeIntervalSinceNow / self.seconds, 1.0))
             let isDone = self.fraction == 1.0
             if isDone {
@@ -89,48 +136,91 @@ class Transition: ObservableObject {
     
 }
 
+public enum PixelTransitionWay {
+    case left
+    case right
+    case up
+    case down
+}
+
+public enum PixelTransitionStyle {
+    case cross
+    case panLeft
+    case panRight
+    case panUp
+    case panDown
+    var way: PixelTransitionWay? {
+        switch self {
+        case .cross: return nil
+        case .panLeft: return .left
+        case .panRight: return .right
+        case .panUp: return .up
+        case .panDown: return .down
+        }
+    }
+}
+
 public struct PixelTransition<Content: View>: View {
     let index: Binding<Int>
-    @ObservedObject var transition: Transition
-    var content: [Content]
-    public init(id: String, selection index: Binding<Int>, seconds: Double = 0.5, @PixelTransitionViewBuilder<Content> content: () -> ([Content])) {
+    let style: PixelTransitionStyle
+    let content: [Content]
+    @ObservedObject var animation: PixelTransitionAnimation
+    public init(id: String, selection index: Binding<Int>, style: PixelTransitionStyle, seconds: Double = 0.5, @PixelTransitionViewBuilder<Content> content: () -> ([Content])) {
         print(id)
         self.index = index
-        transition = Transitions.shared.transition(for: id, index: index, seconds: seconds)
+        self.style = style
         self.content = content()
+        animation = PixelTransitionAnimations.shared.transition(for: id, index: index, seconds: seconds)
     }
     public var body: some View {
         Group {
-            if transition.acitve {
-                BlendsPIXUI { () -> ([PIX & PIXOut]) in
-                    LevelsPIXUI { () -> (PIXUI) in
-//                        PolygonPIXUI()
-                        ViewPIXUI {
-                            content[transition.prevIndex]
-                        }
-                    }
-                        .opacity(LiveFloat(1.0 - transition.fraction))
-                    LevelsPIXUI { () -> (PIXUI) in
-//                        CirclePIXUI()
-                        ViewPIXUI {
-                            content[transition.nextIndex]
-                        }
-                    }
-                        .opacity(LiveFloat(transition.fraction))
+            if animation.acitve {
+                if style == .cross {
+                    PixelTransitionCross(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction)
+                } else if style == .panLeft || style == .panRight || style == .panUp || style == .panDown {
+                    EmptyView()
+                    PixelTransitionPan(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!)
                 }
-                    .blendMode(.over)
-//                CrossPIXUI({ () -> (PIXUI) in
-//                    ViewPIXUI {
-//                        content[transition.prevIndex]
-//                    }
-//                }) { () -> (PIXUI) in
-//                    ViewPIXUI {
-//                        content[transition.nextIndex]
-//                    }
-//                }
-//                    .fraction(transition.fraction)
             } else {
-                self.content[index.wrappedValue]
+                ZStack {
+                    content[index.wrappedValue]
+                        .opacity(0.0)
+                    content[index.wrappedValue]
+                }
+            }
+        }
+    }
+}
+
+struct PixelTransitionCross<Content: View>: View {
+    let contentA: Content
+    let contentB: Content
+    let fraction: CGFloat
+    var body: some View {
+        ZStack {
+            contentA
+                .opacity(1.0 - Double(fraction))
+            contentB
+                .opacity(Double(fraction))
+        }
+    }
+}
+
+
+struct PixelTransitionPan<Content: View>: View {
+    let contentA: Content
+    let contentB: Content
+    let fraction: CGFloat
+    let way: PixelTransitionWay
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                self.contentA
+                    .opacity(1.0 - Double(self.fraction))
+                    .offset(x: self.fraction * -geo.size.width, y: 0)
+                self.contentB
+                    .opacity(Double(self.fraction))
+                    .offset(x: (1.0 - self.fraction) * geo.size.width, y: 0)
             }
         }
     }

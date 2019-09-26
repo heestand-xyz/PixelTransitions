@@ -7,19 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6546D45B4BDC45E3C01E450B /* Pods_PixelTransitions.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 058D23ADD3F5CA880DE2CDFA /* Pods_PixelTransitions.framework */; };
 		74D646F0233BC7400031C43F /* PixelTransitions.h in Headers */ = {isa = PBXBuildFile; fileRef = 74D646EE233BC7400031C43F /* PixelTransitions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		74D646F7233BC9190031C43F /* PixelTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D646F6233BC9190031C43F /* PixelTransition.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		058D23ADD3F5CA880DE2CDFA /* Pods_PixelTransitions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PixelTransitions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		74D646EB233BC7400031C43F /* PixelTransitions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PixelTransitions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		74D646EE233BC7400031C43F /* PixelTransitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PixelTransitions.h; sourceTree = "<group>"; };
 		74D646EF233BC7400031C43F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		74D646F6233BC9190031C43F /* PixelTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelTransition.swift; sourceTree = "<group>"; };
-		808720C976E59D6C768A8761 /* Pods-PixelTransitions.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PixelTransitions.debug.xcconfig"; path = "Target Support Files/Pods-PixelTransitions/Pods-PixelTransitions.debug.xcconfig"; sourceTree = "<group>"; };
-		FAE235F772E91BE933902801 /* Pods-PixelTransitions.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PixelTransitions.release.xcconfig"; path = "Target Support Files/Pods-PixelTransitions/Pods-PixelTransitions.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27,28 +23,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6546D45B4BDC45E3C01E450B /* Pods_PixelTransitions.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		5B4FEAEE28B2F426B2651885 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				808720C976E59D6C768A8761 /* Pods-PixelTransitions.debug.xcconfig */,
-				FAE235F772E91BE933902801 /* Pods-PixelTransitions.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		74D646E1233BC7400031C43F = {
 			isa = PBXGroup;
 			children = (
 				74D646ED233BC7400031C43F /* Source */,
 				74D646EC233BC7400031C43F /* Products */,
-				5B4FEAEE28B2F426B2651885 /* Pods */,
 				8AF4631B2700370DB3F30267 /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -74,7 +59,6 @@
 		8AF4631B2700370DB3F30267 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				058D23ADD3F5CA880DE2CDFA /* Pods_PixelTransitions.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -97,7 +81,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 74D646F3233BC7400031C43F /* Build configuration list for PBXNativeTarget "PixelTransitions" */;
 			buildPhases = (
-				25205BBBAD83AEB5CE37B5FA /* [CP] Check Pods Manifest.lock */,
 				74D646E6233BC7400031C43F /* Headers */,
 				74D646E7233BC7400031C43F /* Sources */,
 				74D646E8233BC7400031C43F /* Frameworks */,
@@ -154,31 +137,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		25205BBBAD83AEB5CE37B5FA /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-PixelTransitions-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		74D646E7233BC7400031C43F /* Sources */ = {
@@ -314,7 +272,6 @@
 		};
 		74D646F4233BC7400031C43F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 808720C976E59D6C768A8761 /* Pods-PixelTransitions.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -341,7 +298,6 @@
 		};
 		74D646F5233BC7400031C43F /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FAE235F772E91BE933902801 /* Pods-PixelTransitions.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
