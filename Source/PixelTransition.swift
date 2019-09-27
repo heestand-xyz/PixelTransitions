@@ -69,11 +69,11 @@ class PixelTransitionAnimations {
     
     var transitionList: [String: PixelTransitionAnimation] = [:]
     
-    func transition(for id: String, index: Binding<Int>, seconds: Double, ease: PixelTransitionEase) -> PixelTransitionAnimation {
+    func transition(for id: String, count: Int, index: Binding<Int>, seconds: Double, ease: PixelTransitionEase) -> PixelTransitionAnimation {
         if let transition = transitionList[id] {
             return transition
         } else {
-            let transition = PixelTransitionAnimation(index: index, seconds: seconds, ease: ease)
+            let transition = PixelTransitionAnimation(count: count, index: index, seconds: seconds, ease: ease)
             transitionList[id] = transition
             return transition
         }
@@ -82,6 +82,8 @@ class PixelTransitionAnimations {
 }
 
 class PixelTransitionAnimation: ObservableObject {
+    
+    let count: Int
     
     let index: Binding<Int>
     var currentIndex: Int
@@ -94,7 +96,8 @@ class PixelTransitionAnimation: ObservableObject {
     @Published var acitve: Bool = false
     @Published var fraction: CGFloat = 0.0
 
-    init(index: Binding<Int>, seconds: Double, ease: PixelTransitionEase) {
+    init(count: Int, index: Binding<Int>, seconds: Double, ease: PixelTransitionEase) {
+        self.count = count
         self.index = index
         currentIndex = index.wrappedValue
         prevIndex = currentIndex
@@ -114,6 +117,7 @@ class PixelTransitionAnimation: ObservableObject {
     func animate() {
         guard !acitve else { return }
         guard currentIndex != nextIndex else { return }
+        guard currentIndex < count else { return }
         acitve = true
         nextIndex = currentIndex
         let startDate = Date()
@@ -168,6 +172,10 @@ public enum PixelTransitionStyle {
     case panRight
     case panUp
     case panDown
+    case panFadeLeft
+    case panFadeRight
+    case panFadeUp
+    case panFadeDown
     case blur
     case flipLeft
     case flipRight
@@ -181,10 +189,10 @@ public enum PixelTransitionStyle {
     case parallaxDown
     var way: PixelTransitionWay? {
         switch self {
-        case .panLeft, .flipLeft, .parallaxLeft: return .left
-        case .panRight, .flipRight, .parallaxRight: return .right
-        case .panUp, .flipUp, .parallaxUp: return .up
-        case .panDown, .flipDown, .parallaxDown: return .down
+        case .panLeft, .panFadeLeft, .flipLeft, .parallaxLeft: return .left
+        case .panRight, .panFadeRight, .flipRight, .parallaxRight: return .right
+        case .panUp, .panFadeUp, .flipUp, .parallaxUp: return .up
+        case .panDown, .panFadeDown, .flipDown, .parallaxDown: return .down
         default: return nil
         }
     }
@@ -207,7 +215,7 @@ public struct PixelTransition<Content: View>: View {
         self.index = index
         self.style = style
         self.content = content()
-        animation = PixelTransitionAnimations.shared.transition(for: id, index: index, seconds: seconds, ease: ease)
+        animation = PixelTransitionAnimations.shared.transition(for: id, count: self.content.count, index: index, seconds: seconds, ease: ease)
     }
     public var body: some View {
         Group {
@@ -215,7 +223,9 @@ public struct PixelTransition<Content: View>: View {
                 if style == .cross {
                     PixelTransitionCross(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction)
                 } else if style == .panLeft || style == .panRight || style == .panUp || style == .panDown {
-                    PixelTransitionPan(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!)
+                    PixelTransitionPan(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!, fade: false)
+                } else if style == .panFadeLeft || style == .panFadeRight || style == .panFadeUp || style == .panFadeDown {
+                    PixelTransitionPan(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!, fade: true)
                 } else if style == .blur {
                     PixelTransitionBlur(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction)
                 } else if style == .flipLeft || style == .flipRight || style == .flipUp || style == .flipDown {
@@ -225,7 +235,7 @@ public struct PixelTransition<Content: View>: View {
                 } else if style == .parallaxLeft || style == .parallaxRight || style == .parallaxUp || style == .parallaxDown {
                     PixelTransitionParallax(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!)
                 }
-            } else {
+            } else if index.wrappedValue < content.count {
                 ZStack {
                     content[index.wrappedValue]
                         .opacity(0.0)
@@ -255,19 +265,21 @@ struct PixelTransitionPan<Content: View>: View {
     let contentB: Content
     let fraction: CGFloat
     let way: PixelTransitionWay
+    let fade: Bool
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 self.contentA
-                    .opacity(1.0 - Double(self.fraction))
+                    .opacity(self.fade ? 1.0 - Double(self.fraction) : 1.0)
                     .offset(x: self.way.horizontal ? (self.way == .left ? self.a(geo.size.width) : -self.a(geo.size.width)) : 0,
                             y: self.way.veritcal ? (self.way == .up ? self.a(geo.size.width) : -self.a(geo.size.width)) : 0)
                 self.contentB
-                    .opacity(Double(self.fraction))
+                    .opacity(self.fade ? Double(self.fraction) : 1.0)
                     .offset(x: self.way.horizontal ? (self.way == .left ? self.b(geo.size.width) : -self.b(geo.size.width)) : 0,
                             y: self.way.veritcal ? (self.way == .up ? self.b(geo.size.width) : -self.b(geo.size.width)) : 0)
             }
         }
+            .clipped()
     }
     func a(_ val: CGFloat) -> CGFloat {
         fraction * -val
@@ -377,6 +389,7 @@ struct PixelTransitionParallax<Content: View>: View {
                                            size: geo.size)))
             }
         }
+            .clipped()
     }
     func a(_ val: CGFloat) -> CGFloat {
         fraction * -val
