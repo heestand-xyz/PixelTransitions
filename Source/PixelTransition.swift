@@ -175,12 +175,16 @@ public enum PixelTransitionStyle {
     case flipDown
     case zoomIn
     case zoomOut
+    case parallaxLeft
+    case parallaxRight
+    case parallaxUp
+    case parallaxDown
     var way: PixelTransitionWay? {
         switch self {
-        case .panLeft, .flipLeft: return .left
-        case .panRight, .flipRight: return .right
-        case .panUp, .flipUp: return .up
-        case .panDown, .flipDown: return .down
+        case .panLeft, .flipLeft, .parallaxLeft: return .left
+        case .panRight, .flipRight, .parallaxRight: return .right
+        case .panUp, .flipUp, .parallaxUp: return .up
+        case .panDown, .flipDown, .parallaxDown: return .down
         default: return nil
         }
     }
@@ -218,6 +222,8 @@ public struct PixelTransition<Content: View>: View {
                    PixelTransitionFlip(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!)
                 } else if style == .zoomIn || style == .zoomOut {
                     PixelTransitionZoom(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, direction: style == .zoomIn)
+                } else if style == .parallaxLeft || style == .parallaxRight || style == .parallaxUp || style == .parallaxDown {
+                    PixelTransitionParallax(contentA: content[animation.prevIndex], contentB: content[animation.nextIndex], fraction: animation.fraction, way: style.way!)
                 }
             } else {
                 ZStack {
@@ -327,5 +333,55 @@ struct PixelTransitionZoom<Content: View>: View {
     }
     func b() -> CGFloat {
         direction ? 1.0 - fraction * kDistance + kDistance : 1.0 + fraction * kDistance - kDistance
+    }
+}
+
+struct PixelTransitionParallax<Content: View>: View {
+    let kFraction: CGFloat = 0.5
+    let contentA: Content
+    let contentB: Content
+    let fraction: CGFloat
+    let way: PixelTransitionWay
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                self.contentA
+                    .offset(x: self.way.horizontal ?
+                               (self.way == .left ? self.a(geo.size.width * self.kFraction) :
+                               -self.a(geo.size.width * self.kFraction)) : 0,
+                            y: self.way.veritcal ?
+                               (self.way == .up ? self.a(geo.size.height * self.kFraction) :
+                               -self.a(geo.size.height * self.kFraction)) : 0)
+                    .clipShape(Path(CGRect(origin: CGPoint(
+                        x: self.way.horizontal ?
+                           (self.way == .left ? self.a(geo.size.width) :
+                            -self.a(geo.size.width)) : 0,
+                        y: self.way.veritcal ?
+                           (self.way == .up ? self.a(geo.size.height) :
+                           -self.a(geo.size.height)) : 0),
+                                           size: geo.size)))
+                self.contentB
+                    .offset(x: self.way.horizontal ?
+                               (self.way == .left ? self.b(geo.size.width * self.kFraction) :
+                               -self.b(geo.size.width * self.kFraction)) : 0,
+                            y: self.way.veritcal ?
+                               (self.way == .up ? self.b(geo.size.height * self.kFraction) :
+                               -self.b(geo.size.height * self.kFraction)) : 0)
+                    .clipShape(Path(CGRect(origin: CGPoint(
+                        x: self.way.horizontal ?
+                           (self.way == .left ? self.b(geo.size.width) :
+                           -self.b(geo.size.width)) : 0,
+                        y: self.way.veritcal ?
+                           (self.way == .up ? self.b(geo.size.height) :
+                           -self.b(geo.size.height)) : 0),
+                                           size: geo.size)))
+            }
+        }
+    }
+    func a(_ val: CGFloat) -> CGFloat {
+        fraction * -val
+    }
+    func b(_ val: CGFloat) -> CGFloat {
+        (1.0 - fraction) * val
     }
 }
